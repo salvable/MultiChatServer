@@ -1,11 +1,11 @@
 const express = require("express");
 const http = require("http");
-const socket = require("socket.io");
+const socketIo = require("socket.io");
 const port = 6000;
 const app = express();
 
 const server = http.createServer(app);
-const io = socket(server);
+const io = socketIo(server);
 
 io.on("connection", (socket) => {
     // connection 요청시 roomName과 userName을 보내줌
@@ -19,7 +19,7 @@ io.on("connection", (socket) => {
         socket.on("onSend", (messageItem) => {
             io.to(room).emit("onReceive", messageItem);
         });
-        
+
         socket.on("disconnect", () => {
             socket.leave(room);
             io.to(room).emit("onDisconnect", `${user} 님이 퇴장하셨습니다.`);
