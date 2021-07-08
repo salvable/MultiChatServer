@@ -1,31 +1,30 @@
-var express = require('express');
-var app = express();
-var http = require('http').Server(app);
-var io = require('socket.io')(http);
+const express = require("express");
+const http = require("http");
+const socket = require("socket.io");
+const port = 6000;
+const app = express();
 
-app.get('/',function(req, res){
-    res.sendFile(__dirname + '/index.html');
-});
+const server = http.createServer(app);
+const io = socket(server);
 
-var count=1;
-io.on('connection', function(socket){
-    console.log('user connected: ', socket.id);
-    var name = "user" + count++;
-    //io.to(socket.id).emit 을 사용하여 해당 socket.id에만 event를 전달
-    io.to(socket.id).emit('change name',name);
+io.on("connection", (socket) => {
+    // connection 요청시 roomName과 userName을 보내줌
+    socket.on("join", ({roomName: room, userName: user}) => {
+        // 받아온 roomName으로 입장
+        socket.join(room);
+        // 해당 room에 전송
+        io.to(room).emit("onConnect", `${user} 님이 입장했습니다.`);
 
-    socket.on('disconnect', function(){
-        console.log('user disconnected: ', socket.id);
+        // 해당 룸에 메세지 전송
+        socket.on("onSend", (messageItem) => {
+            io.to(room).emit("onReceive", messageItem);
+        });
+        
+        socket.on("disconnect", () => {
+            socket.leave(room);
+            io.to(room).emit("onDisconnect", `${user} 님이 퇴장하셨습니다.`);
+        });
     });
+})
 
-    socket.on('send message', function(name,text){
-        var msg = name + ' : ' + text;
-        console.log(msg);
-        //io.emit 을 사용하여 모든 사용자에게 event를 전달
-        io.emit('receive message', msg);
-    });
-});
-
-http.listen(3000, function(){
-    console.log('server on!');
-});
+server.listen(port, () => console.log(`Listening on port ${port}`));
