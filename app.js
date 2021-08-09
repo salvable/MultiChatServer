@@ -12,6 +12,7 @@ io.on("connection", (socket) => {
     socket.on("join", ({roomName: room, userName: user}) => {
         // 받아온 roomName으로 입장
         socket.join(room);
+
         // 해당 room에 전송
         io.to(room).emit("onConnect", `${user} 님이 입장했습니다.`);
 
