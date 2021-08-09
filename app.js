@@ -6,11 +6,14 @@ const app = express();
 const cors = require('cors')
 
 const server = http.createServer(app);
-const io = socketIo(server);
-app.use(cors());
+const io = socketIo(server,{
+    cors: {
+        origin: "http://localhost:3001",
+        methods: ["GET", "POST"]
+    }
+});
 
 io.on("connection", (socket) => {
-    console.log(socket)
     // connection 요청시 roomName과 userName을 보내줌
     socket.on("join", ({roomName: room, userName: user}) => {
         console.log(room,user)
